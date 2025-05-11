@@ -1,5 +1,5 @@
 # use ubuntu 20 AMI for EC2 instance
-data "aws_ami" "ubuntu" {
+/*data "aws_ami" "ubuntu" {
     most_recent = true
 filter {
         name   = "name"
@@ -11,6 +11,7 @@ filter {
     }
 owners = ["628793616920"] # Canonical
 }
+*/
 resource "aws_instance" "app_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
