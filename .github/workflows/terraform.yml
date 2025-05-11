@@ -39,3 +39,30 @@ jobs:
           terraform validate
           terraform plan -out=tfplan
           terraform apply -auto-approve tfplan
+  provision-destroy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::628793616920:role/Githubaction
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
+        run: |
+          terraform destroy -auto-approve
+
