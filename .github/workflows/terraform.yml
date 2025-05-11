@@ -14,9 +14,13 @@ on:
         options:
           - destroy
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read    # Required for actions/checkout
+
 env:
   AWS_REGION: us-east-1
-  ROLE_TO_ASSUME: arn:aws:iam::628793616920:role/githubactionrole 
+  ROLE_TO_ASSUME: arn:aws:iam::123456789012:role/github-terraform-role
 
 jobs:
   apply:
@@ -26,8 +30,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials (Assume Role)
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ env.ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
@@ -48,8 +52,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials (Assume Role)
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ env.ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
