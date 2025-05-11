@@ -1,59 +1,42 @@
-name: Terraform Deployment
+name: Provision EC@
 
 on:
   workflow_dispatch:
     inputs:
-      run_init:
-        description: "Run terraform init?"
+      ec2-name:
+        description: EC2 name
         required: true
-        default: "true"
-      run_fmt:
-        description: "Run terraform fmt?"
-        required: true
-        default: "true"
-      run_validate:
-        description: "Run terraform validate?"
-        required: true
-        default: "true"
-      run_plan:
-        description: "Run terraform plan?"
-        required: true
-        default: "true"
+        default: 'App Server'
+        type: string
 
 jobs:
-  terraform-init:
-    if: ${{ github.event.inputs.run_init == 'true' }}
+  provision-ec2:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform init
+    permissions:
+      id-token: write
+      contents: read
 
-  terraform-fmt:
-    if: ${{ github.event.inputs.run_fmt == 'true' }}
-    runs-on: ubuntu-latest
-    needs: terraform-init
     steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform fmt -check
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-  terraform-validate:
-    if: ${{ github.event.inputs.run_validate == 'true' }}
-    runs-on: ubuntu-latest
-    needs: terraform-init
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform validate
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::628793616920:role/Githubaction
+          aws-region: us-east-1
 
-  terraform-plan:
-    if: ${{ github.event.inputs.run_plan == 'true' }}
-    runs-on: ubuntu-latest
-    needs:
-      - terraform-fmt
-      - terraform-validate
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform plan
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
+        run: |
+          cd tf-example/
+          terraform init
+          terraform validate
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
