@@ -39,40 +39,5 @@ jobs:
           terraform validate
           terraform plan -out=tfplan
           terraform apply -auto-approve tfplan
-
-  destroy:
-    name: Terraform Destroy (Manual Approval)
-    needs: apply
-    runs-on: ubuntu-latest
-    environment:
-      name: manual-approval  # Must  created in GitHub repo Settings > Environments
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::628793616920:role/Githubaction
-          aws-region: us-east-1
-
-      - name: Debug: Who am I
-        run: |
-          aws sts get-caller-identity
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Destroy
-        env:
-          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
-        run: |
-          terraform init
           terraform destroy -auto-approve
 
