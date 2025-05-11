@@ -45,7 +45,7 @@ jobs:
     needs: apply
     runs-on: ubuntu-latest
     environment:
-      name: manual-approval  # Must be created in GitHub repo Settings > Environments
+      name: manual-approval  # Must  created in GitHub repo Settings > Environments
     permissions:
       id-token: write
       contents: read
