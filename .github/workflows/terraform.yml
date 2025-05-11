@@ -59,9 +59,11 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::628793616920:role/Githubaction
           aws-region: us-east-1
+
       - name: Debug: Who am I
-        run:  |
+        run: |
           aws sts get-caller-identity
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
