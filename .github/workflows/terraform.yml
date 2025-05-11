@@ -1,4 +1,4 @@
-name: Provision EC@
+name: Provision and Destroy EC2
 
 on:
   workflow_dispatch:
@@ -39,7 +39,9 @@ jobs:
           terraform validate
           terraform plan -out=tfplan
           terraform apply -auto-approve tfplan
+
   provision-destroy:
+    needs: provision-ec2  # This ensures it runs after provision-ec2
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -60,7 +62,7 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - name: Terraform destroy
+      - name: Terraform Destroy
         env:
           TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
         run: |
