@@ -1,42 +1,65 @@
-name: Terraform Apply and Destroy with Manual Approval
+name: Terraform CI/CD
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
-      ec2-name:
-        description: "EC2 instance name"
+      action:
+        description: 'Terraform action to perform'
         required: true
-        default: "App Server"
+        default: 'destroy'
+        type: choice
+        options:
+          - destroy
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_TO_ASSUME: arn:aws:iam::123456789012:role/github-terraform-role
 
 jobs:
   apply:
-    name: Terraform Apply
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS Credentials (Assume Role)
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::628793616920:role/Githubaction
-          aws-region: us-east-1
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
 
       - name: Terraform Apply
-        env:
-          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
-        run: |
-          terraform init
-          terraform validate
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve
+
+  destroy:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (Assume Role)
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
 
