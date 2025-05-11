@@ -12,6 +12,7 @@ on:
         default: 'destroy'
         type: choice
         options:
+          - apply
           - destroy
 
 permissions:
@@ -24,7 +25,7 @@ env:
 
 jobs:
   apply:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
