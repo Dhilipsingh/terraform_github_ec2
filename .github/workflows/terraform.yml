@@ -1,7 +1,7 @@
 name: Terraform CI/CD
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
     inputs:
       action:
         description: 'Terraform action to perform'
@@ -11,6 +11,7 @@ on:
         options:
           - apply
           - destroy
+
 
 permissions:
   id-token: write  # Required for OIDC
